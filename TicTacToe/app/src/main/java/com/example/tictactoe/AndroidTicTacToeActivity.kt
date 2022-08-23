@@ -2,6 +2,8 @@ package com.example.tictactoe
 
 import android.graphics.Color
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -37,9 +39,20 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
         startNewGame()
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        super.onCreateOptionsMenu(menu)
+        menu.add("New Game")
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        startNewGame()
+        return true
+    }
+
     // Set up the game board.
     private fun  startNewGame() {
-        //mGame.clearBoard()
+        mGame.clearBoard()
 
         // Reset all buttons
         for (i in mBoardButtons.indices) {
