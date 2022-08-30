@@ -1,13 +1,19 @@
 package com.example.tictactoe
 
+import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.menu.MenuBuilder
 import edu.harding.tictactoe.TicTacToeGame
 
 class AndroidTicTacToeActivity : AppCompatActivity() {
@@ -18,6 +24,8 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
 
     // Various text displayed
     private lateinit var mInfoTextView: TextView
+
+    private lateinit var mDifficultyTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,25 +42,49 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
         mBoardButtons[7] = findViewById<View>(R.id.eight) as Button
         mBoardButtons[8] = findViewById<View>(R.id.nine) as Button
         mInfoTextView = findViewById<View>(R.id.information) as TextView
+        mDifficultyTextView = findViewById<View>(R.id.difficulty) as TextView
         mGame = TicTacToeGame()
 
         startNewGame()
     }
 
+    @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        super.onCreateOptionsMenu(menu)
-        menu.add("New Game")
-        return true
+        if (menu is MenuBuilder) {
+            (menu).setOptionalIconsVisible(true)
+        }
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.options_menu, menu)
+        return super.onCreateOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        startNewGame()
-        return true
+        when (item.itemId) {
+            R.id.new_game -> {
+                startNewGame()
+                return true
+            }
+            R.id.ai_difficulty -> {
+                difficultyAlert()
+                return true
+            }
+            R.id.quit -> {
+                quitGameAlert()
+                return true
+            }
+        }
+        return false
     }
 
     // Set up the game board.
     private fun  startNewGame() {
         mGame.clearBoard()
+
+        when(mGame.getDifficultyLevel()){
+            TicTacToeGame.DifficultyLevel.Easy->{mDifficultyTextView.text = "The difficulty is easy"}
+            TicTacToeGame.DifficultyLevel.Harder->{mDifficultyTextView.text = "The difficulty is hard"}
+            TicTacToeGame.DifficultyLevel.Expert->{mDifficultyTextView.text = "The difficulty is expert"}
+        }
 
         // Reset all buttons
         for (i in mBoardButtons.indices) {
@@ -74,10 +106,14 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
                             "It's your turn."
                         1 -> mInfoTextView.text =
                             "It's a tie!"
-                        2 -> mInfoTextView.text =
-                            "You won!"
-                        else -> mInfoTextView.text =
-                            "Android won!"
+                        2 -> {
+                            mInfoTextView.text = "You won!"
+                            blockButtons()
+                            }
+                        else -> {
+                            mInfoTextView.text = "Android won!"
+                            blockButtons()
+                        }
                     }
                 }
             }
@@ -85,6 +121,12 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
 
         // Human goes first
         mInfoTextView.text = "You go first."
+    }
+
+    private fun blockButtons(){
+        for (i in mBoardButtons.indices){
+            mBoardButtons[i]!!.isEnabled = false
+        }
     }
 
     private fun setMove(player: Char, location: Int) {
@@ -98,5 +140,64 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
                 0
             )
         ) else mBoardButtons[location]?.setTextColor(Color.rgb(200, 0, 0))
+    }
+
+    private fun difficultyAlert(){
+        var dialog: AlertDialog
+        val builder = AlertDialog.Builder(this)
+        val levels = arrayOf<CharSequence>(
+            resources.getString(R.string.difficulty_easy),
+            resources.getString(R.string.difficulty_harder),
+            resources.getString(R.string.difficulty_expert)
+        )
+        with(builder)
+        {
+            setTitle(R.string.difficulty_choose);
+            setSingleChoiceItems(levels, -1) { dialogInterface, item ->
+                when(item){
+                    0 ->{
+                        var difficulty = TicTacToeGame.DifficultyLevel.Easy
+                        mGame.setDifficultyLevel(difficulty)
+                        startNewGame()
+                    }
+                    1 ->{
+                        var difficulty = TicTacToeGame.DifficultyLevel.Harder
+                        mGame.setDifficultyLevel(difficulty)
+                        startNewGame()
+                    }
+                    2 ->{
+                        var difficulty = TicTacToeGame.DifficultyLevel.Expert
+                        mGame.setDifficultyLevel(difficulty)
+                        startNewGame()
+                    }
+                }
+                // Display the selected difficulty level
+                Toast.makeText(applicationContext, levels[item], Toast.LENGTH_SHORT).show()
+                dialogInterface.dismiss()
+            }
+        }
+        dialog = builder.create()
+        // Finally, display the alert dialog
+        dialog.show()
+    }
+
+    private val positiveButtonClick = { _: DialogInterface, _: Int ->
+        finish()
+    }
+
+    private val negativeButtonClick = { _: DialogInterface, _: Int ->
+        Toast.makeText(applicationContext,"Continuemos jugando", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun quitGameAlert(){
+        val builder = AlertDialog.Builder(this)
+        with(builder)
+        {
+            setTitle("Cerrar juego")
+            setMessage("Desea cerrar el juego?")
+            setPositiveButton("Si", positiveButtonClick)
+            setNegativeButton("No", negativeButtonClick)
+            show()
+        }
     }
 }
