@@ -14,7 +14,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
+import edu.harding.tictactoe.BoardView
 import edu.harding.tictactoe.TicTacToeGame
+
 
 class AndroidTicTacToeActivity : AppCompatActivity() {
     private lateinit var mGame: TicTacToeGame
@@ -27,23 +29,17 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
 
     private lateinit var mDifficultyTextView: TextView
 
+    private lateinit var mBoardView: BoardView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        mBoardButtons = arrayOfNulls(TicTacToeGame().BOARD_SIZE)
-        mBoardButtons[0] = findViewById<View>(R.id.one) as Button
-        mBoardButtons[1] = findViewById<View>(R.id.two) as Button
-        mBoardButtons[2] = findViewById<View>(R.id.three) as Button
-        mBoardButtons[3] = findViewById<View>(R.id.four) as Button
-        mBoardButtons[4] = findViewById<View>(R.id.five) as Button
-        mBoardButtons[5] = findViewById<View>(R.id.six) as Button
-        mBoardButtons[6] = findViewById<View>(R.id.seven) as Button
-        mBoardButtons[7] = findViewById<View>(R.id.eight) as Button
-        mBoardButtons[8] = findViewById<View>(R.id.nine) as Button
         mInfoTextView = findViewById<View>(R.id.information) as TextView
         mDifficultyTextView = findViewById<View>(R.id.difficulty) as TextView
         mGame = TicTacToeGame()
+        mBoardView = findViewById<View>(android.R.id.boardView) as BoardView
+        mBoardView.setGame(mGame)
 
         startNewGame()
     }

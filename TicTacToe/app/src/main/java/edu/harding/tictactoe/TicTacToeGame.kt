@@ -15,7 +15,7 @@ class TicTacToeGame {
 
     private var mDifficultyLevel: DifficultyLevel = DifficultyLevel.Easy
 
-    fun getDifficultyLevel(): DifficultyLevel? {
+    fun getDifficultyLevel(): DifficultyLevel {
         return mDifficultyLevel
     }
 
