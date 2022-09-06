@@ -33,8 +33,17 @@ class TicTacToeGame {
      * @param player - The HUMAN_PLAYER or COMPUTER_PLAYER
      * @param location - The location (0-8) to place the move
      */
-    fun setMove(player:  Char, location: Int){
-        mBoard[location] = player
+    fun setMove(player: Char, location: Int) : Boolean{
+        if(mBoard[location] == OPEN_SPOT){
+            mBoard[location] = player
+            return true
+        }
+
+        return false
+    }
+
+    fun getBoardOccupant(pos: Int): Char{
+        return mBoard[pos]
     }
     /** Return the best move for the computer to make. You must call setMove()
      * to actually make the computer move to that location.
@@ -97,13 +106,13 @@ class TicTacToeGame {
     }
 
     private fun getRandomMove(): Int{
-        var move: Int;
+        var move: Int
         // Generate random move
         do {
             move = Random.nextInt(BOARD_SIZE)
         } while (mBoard[move] == HUMAN_PLAYER || mBoard[move] == COMPUTER_PLAYER)
         setMove(COMPUTER_PLAYER, move)
-        return move;
+        return move
     }
     /**
      * Check for a winner and return a status value indicating who has won.

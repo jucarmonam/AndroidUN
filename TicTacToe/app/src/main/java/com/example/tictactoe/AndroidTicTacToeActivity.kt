@@ -3,26 +3,27 @@ package com.example.tictactoe
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.DialogInterface
-import android.graphics.Color
+import android.media.MediaPlayer
+import android.opengl.ETC1.getHeight
+import android.opengl.ETC1.getWidth
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.widget.Button
+import android.os.Handler
+import android.os.Looper
+import android.view.*
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import edu.harding.tictactoe.BoardView
 import edu.harding.tictactoe.TicTacToeGame
+import java.util.*
 
 
 class AndroidTicTacToeActivity : AppCompatActivity() {
     private lateinit var mGame: TicTacToeGame
 
     // Buttons making up the board
-    private lateinit var mBoardButtons : Array<Button?>
+    //private lateinit var mBoardButtons : Array<Button?>
 
     // Various text displayed
     private lateinit var mInfoTextView: TextView
@@ -31,6 +32,13 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
 
     private lateinit var mBoardView: BoardView
 
+    private var mGameOver = false
+
+    private var playerMove = true
+
+    var mHumanMediaPlayer: MediaPlayer? = null
+    var mComputerMediaPlayer: MediaPlayer? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -38,10 +46,89 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
         mInfoTextView = findViewById<View>(R.id.information) as TextView
         mDifficultyTextView = findViewById<View>(R.id.difficulty) as TextView
         mGame = TicTacToeGame()
-        mBoardView = findViewById<View>(android.R.id.boardView) as BoardView
+        mBoardView = findViewById<View>(R.id.boardView) as BoardView
         mBoardView.setGame(mGame)
+        mBoardView.setOnTouchListener(mTouchListener())
 
         startNewGame()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mHumanMediaPlayer = MediaPlayer.create(applicationContext, R.raw.humansound)
+        mComputerMediaPlayer = MediaPlayer.create(applicationContext, R.raw.computersound)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mHumanMediaPlayer?.release()
+        mComputerMediaPlayer?.release()
+    }
+
+    // Listen for touches on the board
+    private inner class mTouchListener : View.OnTouchListener {
+        override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+
+            // Determine which cell was touched
+            val col: Int = event!!.x.toInt() / mBoardView.getBoardCellWidth()
+            val row: Int = event.y.toInt() / mBoardView.getBoardCellHeight()
+            val pos = row * 3 + col
+
+            if (playerMove && !mGameOver && setMove(TicTacToeGame().HUMAN_PLAYER, pos)){
+                mHumanMediaPlayer?.start()
+                var winner: Int = mGame.checkForWinner()
+                if (winner == 0) {
+                    mInfoTextView.text = "It's Android's turn."
+                    playerMove = false
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        val move: Int = mGame.getComputerMove()
+                        setMove(TicTacToeGame().COMPUTER_PLAYER, move)
+                        mBoardView.invalidate()
+                        mComputerMediaPlayer?.start()
+                        winner = mGame.checkForWinner()
+                        playerMove = true
+
+                        when (winner) {
+                            0 -> mInfoTextView.text =
+                                "It's your turn."
+                            1 -> {
+                                mInfoTextView.text = "It's a tie!"
+                                mGameOver = true
+                            }
+                            2 -> {
+                                mInfoTextView.text = "You won!"
+                                mGameOver = true
+                            }
+                            else -> {
+                                mInfoTextView.text = "Android won!"
+                                mGameOver = true
+                            }
+                        }
+                    }, 2000)
+                }
+
+                if(playerMove){
+                    when (winner) {
+                        0 -> mInfoTextView.text =
+                            "It's your turn."
+                        1 -> {
+                            mInfoTextView.text = "It's a tie!"
+                            mGameOver = true
+                        }
+                        2 -> {
+                            mInfoTextView.text = "You won!"
+                            mGameOver = true
+                        }
+                        else -> {
+                            mInfoTextView.text = "Android won!"
+                            mGameOver = true
+                        }
+                    }
+                }
+            }
+
+            return false
+        }
     }
 
     @SuppressLint("RestrictedApi")
@@ -75,6 +162,8 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
     // Set up the game board.
     private fun  startNewGame() {
         mGame.clearBoard()
+        mBoardView.invalidate()
+        mGameOver = false
 
         when(mGame.getDifficultyLevel()){
             TicTacToeGame.DifficultyLevel.Easy->{mDifficultyTextView.text = "The difficulty is easy"}
@@ -82,64 +171,28 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
             TicTacToeGame.DifficultyLevel.Expert->{mDifficultyTextView.text = "The difficulty is expert"}
         }
 
-        // Reset all buttons
-        for (i in mBoardButtons.indices) {
-            mBoardButtons[i]!!.text = ""
-            mBoardButtons[i]!!.isEnabled = true
-            mBoardButtons[i]!!.setOnClickListener{
-                if (mBoardButtons[i]!!.isEnabled) {
-                    setMove(TicTacToeGame().HUMAN_PLAYER, i)
-                    // If no winner yet, let the computer make a move
-                    var winner: Int = mGame.checkForWinner()
-                    if (winner == 0) {
-                        mInfoTextView.text = "It's Android's turn."
-                        val move: Int = mGame.getComputerMove()
-                        setMove(TicTacToeGame().COMPUTER_PLAYER, move)
-                        winner = mGame.checkForWinner()
-                    }
-                    when (winner) {
-                        0 -> mInfoTextView.text =
-                            "It's your turn."
-                        1 -> mInfoTextView.text =
-                            "It's a tie!"
-                        2 -> {
-                            mInfoTextView.text = "You won!"
-                            blockButtons()
-                            }
-                        else -> {
-                            mInfoTextView.text = "Android won!"
-                            blockButtons()
-                        }
-                    }
-                }
-            }
-        }
-
         // Human goes first
         mInfoTextView.text = "You go first."
     }
 
+    /*
     private fun blockButtons(){
         for (i in mBoardButtons.indices){
             mBoardButtons[i]!!.isEnabled = false
         }
     }
+     */
 
-    private fun setMove(player: Char, location: Int) {
-        mGame.setMove(player, location)
-        mBoardButtons[location]!!.isEnabled = false
-        mBoardButtons[location]!!.text = player.toString()
-        if (player == mGame.HUMAN_PLAYER) mBoardButtons[location]?.setTextColor(
-            Color.rgb(
-                0,
-                200,
-                0
-            )
-        ) else mBoardButtons[location]?.setTextColor(Color.rgb(200, 0, 0))
+    private fun setMove(player: Char, location: Int) : Boolean {
+        if (mGame.setMove(player, location)) {
+            mBoardView.invalidate() // Redraw the board
+            return true
+        }
+        return false
     }
 
     private fun difficultyAlert(){
-        var dialog: AlertDialog
+        val dialog: AlertDialog
         val builder = AlertDialog.Builder(this)
         val levels = arrayOf<CharSequence>(
             resources.getString(R.string.difficulty_easy),
@@ -152,17 +205,17 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
             setSingleChoiceItems(levels, -1) { dialogInterface, item ->
                 when(item){
                     0 ->{
-                        var difficulty = TicTacToeGame.DifficultyLevel.Easy
+                        val difficulty = TicTacToeGame.DifficultyLevel.Easy
                         mGame.setDifficultyLevel(difficulty)
                         startNewGame()
                     }
                     1 ->{
-                        var difficulty = TicTacToeGame.DifficultyLevel.Harder
+                        val difficulty = TicTacToeGame.DifficultyLevel.Harder
                         mGame.setDifficultyLevel(difficulty)
                         startNewGame()
                     }
                     2 ->{
-                        var difficulty = TicTacToeGame.DifficultyLevel.Expert
+                        val difficulty = TicTacToeGame.DifficultyLevel.Expert
                         mGame.setDifficultyLevel(difficulty)
                         startNewGame()
                     }
