@@ -10,7 +10,7 @@
         android:icon="@drawable/difficulty_level"
         android:title="Difficulty"/>
     <item
-        android:id="@+id/quit"
+        android:id="@+id/reset_scores"
         android:icon="@drawable/quit_game"
-        android:title="Quit"/>
+        android:title="Reset Scores"/>
 </menu>

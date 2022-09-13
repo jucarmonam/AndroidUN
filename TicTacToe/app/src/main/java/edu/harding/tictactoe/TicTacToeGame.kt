@@ -1,6 +1,8 @@
 package edu.harding.tictactoe
 
+import android.content.SharedPreferences
 import kotlin.random.Random
+
 
 class TicTacToeGame {
     val HUMAN_PLAYER = 'X'
@@ -21,6 +23,14 @@ class TicTacToeGame {
 
     fun setDifficultyLevel(difficultyLevel: DifficultyLevel) {
         mDifficultyLevel = difficultyLevel
+    }
+
+    fun getBoardState(): CharArray {
+        return mBoard
+    }
+
+    fun setBoardState(board: CharArray) {
+        mBoard = board
     }
 
     /** Clear the board of all X's and O's by setting all spots to OPEN_SPOT. */

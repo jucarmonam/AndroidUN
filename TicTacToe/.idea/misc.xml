@@ -3,8 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/AndroidStudioProjects/TicTacToe/app/src/main/res/layout-land/activity_main.xml" value="0.31040564373897706" />
         <entry key="..\:/AndroidStudioProjects/TicTacToe/app/src/main/res/layout/activity_main.xml" value="0.25" />
-        <entry key="..\:/AndroidStudioProjects/TicTacToe/app/src/main/res/menu/options_menu.xml" value="0.12129629629629629" />
+        <entry key="..\:/AndroidStudioProjects/TicTacToe/app/src/main/res/menu/options_menu.xml" value="0.33" />
       </map>
     </option>
   </component>

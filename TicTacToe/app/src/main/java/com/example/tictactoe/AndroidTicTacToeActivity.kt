@@ -2,10 +2,8 @@ package com.example.tictactoe
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.DialogInterface
+import android.content.SharedPreferences
 import android.media.MediaPlayer
-import android.opengl.ETC1.getHeight
-import android.opengl.ETC1.getWidth
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -16,19 +14,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import edu.harding.tictactoe.BoardView
 import edu.harding.tictactoe.TicTacToeGame
-import java.util.*
 
 
 class AndroidTicTacToeActivity : AppCompatActivity() {
     private lateinit var mGame: TicTacToeGame
 
-    // Buttons making up the board
-    //private lateinit var mBoardButtons : Array<Button?>
-
     // Various text displayed
     private lateinit var mInfoTextView: TextView
 
     private lateinit var mDifficultyTextView: TextView
+
+    private lateinit var mHumanScoreTextView: TextView
+
+    private lateinit var mComputerScoreTextView: TextView
+
+    private lateinit var mTieScoreTextView: TextView
 
     private lateinit var mBoardView: BoardView
 
@@ -36,8 +36,21 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
 
     private var playerMove = true
 
+    private var mHumanWins = 0
+
+    private var mComputerWins = 0
+
+    private var mTies = 0
+
+    private var mPrefs: SharedPreferences? = null
+
     var mHumanMediaPlayer: MediaPlayer? = null
-    var mComputerMediaPlayer: MediaPlayer? = null
+
+    private var mComputerMediaPlayer: MediaPlayer? = null
+
+    private var playerStart: Boolean = true
+
+    private var handler = Handler(Looper.getMainLooper())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,12 +58,64 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
 
         mInfoTextView = findViewById<View>(R.id.information) as TextView
         mDifficultyTextView = findViewById<View>(R.id.difficulty) as TextView
+        mHumanScoreTextView = findViewById<View>(R.id.human) as TextView
+        mComputerScoreTextView = findViewById<View>(R.id.android) as TextView
+        mTieScoreTextView = findViewById<View>(R.id.ties) as TextView
         mGame = TicTacToeGame()
         mBoardView = findViewById<View>(R.id.boardView) as BoardView
         mBoardView.setGame(mGame)
         mBoardView.setOnTouchListener(mTouchListener())
 
-        startNewGame()
+        mPrefs = getSharedPreferences("ttt_prefs", MODE_PRIVATE)
+        // Restore the scores
+        mHumanWins = mPrefs!!.getInt("mHumanWins", 0)
+        mComputerWins = mPrefs!!.getInt("mComputerWins", 0)
+        mTies = mPrefs!!.getInt("mTies", 0)
+
+        if (savedInstanceState == null) {
+            startNewGame()
+        }
+
+        displayScores()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Save the current scores
+        val ed = mPrefs!!.edit()
+        ed.putInt("mHumanWins", mHumanWins)
+        ed.putInt("mComputerWins", mComputerWins)
+        ed.putInt("mTies", mTies)
+        ed.apply()
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        mGame.setBoardState(savedInstanceState.getCharArray("board")!!)
+        mGameOver = savedInstanceState.getBoolean("mGameOver")
+        playerMove = savedInstanceState.getBoolean("playerMove")
+        if(!playerMove){
+            computerMove()
+        }
+        mInfoTextView.text = savedInstanceState.getCharSequence("info")
+        mDifficultyTextView.text = savedInstanceState.getCharSequence("difficulty")
+        playerStart = savedInstanceState.getBoolean("playerStart")
+
+        val difficult = savedInstanceState.getCharArray("DifficultyLevel")
+
+        if(difficult.toString() == "Easy"){
+            mGame.setDifficultyLevel(TicTacToeGame.DifficultyLevel.Easy)
+        }else if(difficult.toString() == "Harder"){
+            mGame.setDifficultyLevel(TicTacToeGame.DifficultyLevel.Harder)
+        }else if(difficult.toString() == "Expert"){
+            mGame.setDifficultyLevel(TicTacToeGame.DifficultyLevel.Expert)
+        }
+    }
+
+    private fun displayScores() {
+        mHumanScoreTextView.text = "Human: ".plus(mHumanWins.toString())
+        mComputerScoreTextView.text = "Android: ".plus(mComputerWins.toString())
+        mTieScoreTextView.text = "Ties: ".plus(mTies.toString())
     }
 
     override fun onResume() {
@@ -63,6 +128,18 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
         super.onPause()
         mHumanMediaPlayer?.release()
         mComputerMediaPlayer?.release()
+        handler.removeCallbacksAndMessages(null)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putCharArray("board", mGame.getBoardState())
+        outState.putBoolean("mGameOver", mGameOver)
+        outState.putBoolean("playerMove", playerMove)
+        outState.putCharSequence("info", mInfoTextView.text)
+        outState.putCharSequence("difficulty", mDifficultyTextView.text)
+        outState.putBoolean("playerStart", playerStart)
+        outState.putCharSequence("DifficultyLevel", mGame.getDifficultyLevel().toString())
     }
 
     // Listen for touches on the board
@@ -75,60 +152,69 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
             val pos = row * 3 + col
 
             if (playerMove && !mGameOver && setMove(TicTacToeGame().HUMAN_PLAYER, pos)){
-                mHumanMediaPlayer?.start()
-                var winner: Int = mGame.checkForWinner()
+                try {
+                    mHumanMediaPlayer?.start()
+                }catch (e: IllegalStateException){
+                    println("danado")
+                }
+                val winner: Int = mGame.checkForWinner()
                 if (winner == 0) {
                     mInfoTextView.text = "It's Android's turn."
                     playerMove = false
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        val move: Int = mGame.getComputerMove()
-                        setMove(TicTacToeGame().COMPUTER_PLAYER, move)
-                        mBoardView.invalidate()
-                        mComputerMediaPlayer?.start()
-                        winner = mGame.checkForWinner()
-                        playerMove = true
-
-                        when (winner) {
-                            0 -> mInfoTextView.text =
-                                "It's your turn."
-                            1 -> {
-                                mInfoTextView.text = "It's a tie!"
-                                mGameOver = true
-                            }
-                            2 -> {
-                                mInfoTextView.text = "You won!"
-                                mGameOver = true
-                            }
-                            else -> {
-                                mInfoTextView.text = "Android won!"
-                                mGameOver = true
-                            }
-                        }
-                    }, 2000)
+                    computerMove()
                 }
 
                 if(playerMove){
-                    when (winner) {
-                        0 -> mInfoTextView.text =
-                            "It's your turn."
-                        1 -> {
-                            mInfoTextView.text = "It's a tie!"
-                            mGameOver = true
-                        }
-                        2 -> {
-                            mInfoTextView.text = "You won!"
-                            mGameOver = true
-                        }
-                        else -> {
-                            mInfoTextView.text = "Android won!"
-                            mGameOver = true
-                        }
-                    }
+                    validateWinner(winner)
                 }
             }
 
             return false
         }
+    }
+
+    private fun computerMove() {
+        handler.postDelayed({
+            val move: Int = mGame.getComputerMove()
+            setMove(TicTacToeGame().COMPUTER_PLAYER, move)
+            mBoardView.invalidate()
+            try{
+                mComputerMediaPlayer?.start()
+            }catch (e: IllegalStateException){
+                println("danado")
+            }
+            val winner = mGame.checkForWinner()
+            playerMove = true
+
+            validateWinner(winner)
+        }, 2000)
+    }
+
+    private fun validateWinner(winner: Int) {
+        when (winner) {
+            0 -> mInfoTextView.text =
+                "It's your turn."
+            1 -> {
+                mInfoTextView.text = "It's a tie!"
+                mGameOver = true
+                mTies++
+                mTieScoreTextView.text = "Ties: ".plus(mTies)
+            }
+            2 -> {
+                mInfoTextView.text = "You won!"
+                mGameOver = true
+                mHumanWins++
+                mHumanScoreTextView.text = "Human: ".plus(mHumanWins)
+            }
+            else -> {
+                mInfoTextView.text = "Android won!"
+                mGameOver = true
+                mComputerWins++
+                mComputerScoreTextView.text = "Android: ".plus(mComputerWins)
+            }
+        }
+
+
     }
 
     @SuppressLint("RestrictedApi")
@@ -151,8 +237,8 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
                 difficultyAlert()
                 return true
             }
-            R.id.quit -> {
-                quitGameAlert()
+            R.id.reset_scores -> {
+                resetScoresAlert()
                 return true
             }
         }
@@ -164,6 +250,7 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
         mGame.clearBoard()
         mBoardView.invalidate()
         mGameOver = false
+        handler.removeCallbacksAndMessages(null)
 
         when(mGame.getDifficultyLevel()){
             TicTacToeGame.DifficultyLevel.Easy->{mDifficultyTextView.text = "The difficulty is easy"}
@@ -171,17 +258,17 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
             TicTacToeGame.DifficultyLevel.Expert->{mDifficultyTextView.text = "The difficulty is expert"}
         }
 
-        // Human goes first
-        mInfoTextView.text = "You go first."
-    }
-
-    /*
-    private fun blockButtons(){
-        for (i in mBoardButtons.indices){
-            mBoardButtons[i]!!.isEnabled = false
+        if(!playerStart){
+            mInfoTextView.text = "Android's go first."
+            playerMove = false
+            computerMove()
+        }else{
+            // Human goes first
+            mInfoTextView.text = "You go first."
         }
+
+        playerStart = !playerStart
     }
-     */
 
     private fun setMove(player: Char, location: Int) : Boolean {
         if (mGame.setMove(player, location)) {
@@ -201,7 +288,7 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
         )
         with(builder)
         {
-            setTitle(R.string.difficulty_choose);
+            setTitle(R.string.difficulty_choose)
             setSingleChoiceItems(levels, -1) { dialogInterface, item ->
                 when(item){
                     0 ->{
@@ -230,23 +317,12 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private val positiveButtonClick = { _: DialogInterface, _: Int ->
-        finish()
-    }
-
-    private val negativeButtonClick = { _: DialogInterface, _: Int ->
-        Toast.makeText(applicationContext,"Continuemos jugando", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun quitGameAlert(){
-        val builder = AlertDialog.Builder(this)
-        with(builder)
-        {
-            setTitle("Cerrar juego")
-            setMessage("Desea cerrar el juego?")
-            setPositiveButton("Si", positiveButtonClick)
-            setNegativeButton("No", negativeButtonClick)
-            show()
-        }
+    private fun resetScoresAlert(){
+        mTies = 0
+        mHumanWins = 0
+        mComputerWins = 0
+        mTieScoreTextView.text = "Ties: ".plus("0")
+        mHumanScoreTextView.text = "Human: ".plus("0")
+        mComputerScoreTextView.text = "Android: ".plus("0")
     }
 }
