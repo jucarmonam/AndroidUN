@@ -2,6 +2,7 @@ package com.example.tictactoe
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Intent
 import android.content.SharedPreferences
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -213,8 +214,6 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
                 mComputerScoreTextView.text = "Android: ".plus(mComputerWins)
             }
         }
-
-
     }
 
     @SuppressLint("RestrictedApi")
@@ -239,6 +238,11 @@ class AndroidTicTacToeActivity : AppCompatActivity() {
             }
             R.id.reset_scores -> {
                 resetScoresAlert()
+                return true
+            }
+            R.id.multiplayer -> {
+                val intent = Intent(this, MultiplayerActivity::class.java)
+                startActivity(intent)
                 return true
             }
         }
