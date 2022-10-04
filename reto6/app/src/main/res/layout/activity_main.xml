@@ -30,21 +30,34 @@
         android:layout_centerHorizontal="true"
         android:src="@drawable/logo"/>
 
-    <ScrollView
+    <Spinner
+        android:id="@+id/filterSpinnerClassification"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/scrollView"
         android:layout_below="@+id/imageView"
+        android:layout_margin="30dp"
+        android:layout_centerHorizontal="true"
+        android:prompt="@string/spinner_title" />
+
+    <EditText
+        android:id="@+id/filterTextName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/filterSpinnerClassification"
+        android:layout_marginBottom="10dp"
+        android:ems="10"
+        android:layout_centerHorizontal="true"
+        android:inputType="text"
+        android:hint="Search by name"/>
+
+    <ListView
+        android:id="@+id/listView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/filterTextName"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true">
-
-        <ListView
-            android:id="@+id/listView1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-        </ListView>
-
-    </ScrollView>
+    </ListView>
 
 </RelativeLayout>

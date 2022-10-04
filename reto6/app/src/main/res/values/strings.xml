@@ -17,4 +17,11 @@
     <string name="deleteContact">Are you sure, you want to delete it.</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="spinner_title">Filter</string>
+    <string-array name="classifications">
+        <item>Select a classification</item>
+        <item>Consultancy</item>
+        <item>Custom development</item>
+        <item>Software factory</item>
+    </string-array>
 </resources>

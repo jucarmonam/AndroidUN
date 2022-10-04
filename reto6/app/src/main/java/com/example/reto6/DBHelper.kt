@@ -90,7 +90,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         return true
     }
 
-    fun deleteCompany(id: Int?): Int? {
+    fun deleteCompany(id: Int?): Int {
         val db = this.writableDatabase
         return db.delete(
             "companies",
@@ -106,6 +106,76 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         res.moveToFirst()
         while (!res.isAfterLast) {
             arrayList.add(res.getString(res.getColumnIndexOrThrow(COMPANIES_COLUMN_NAME)))
+            res.moveToNext()
+        }
+        res.close()
+        return arrayList
+    }
+
+    fun getAllCompaniesIds(): ArrayList<String> {
+        val arrayList = ArrayList<String>()
+
+        val db = this.readableDatabase
+        val res = db.rawQuery("select * from companies", null)
+        res.moveToFirst()
+        while (!res.isAfterLast) {
+            arrayList.add(res.getString(res.getColumnIndexOrThrow(COMPANIES_COLUMN_ID)))
+            res.moveToNext()
+        }
+        res.close()
+        return arrayList
+    }
+
+    fun getByClassifications(clas : String): ArrayList<String> {
+        val arrayList = ArrayList<String>()
+
+        val db = this.readableDatabase
+        val res = db.rawQuery("select * from companies where classification='$clas'", null)
+        res.moveToFirst()
+        while (!res.isAfterLast) {
+            arrayList.add(res.getString(res.getColumnIndexOrThrow(COMPANIES_COLUMN_NAME)))
+            res.moveToNext()
+        }
+        res.close()
+        return arrayList
+    }
+
+    fun getByClassificationsIds(clas : String): ArrayList<String> {
+        val arrayList = ArrayList<String>()
+
+        val db = this.readableDatabase
+        val res = db.rawQuery("select * from companies where classification='$clas'", null)
+        res.moveToFirst()
+        while (!res.isAfterLast) {
+            arrayList.add(res.getString(res.getColumnIndexOrThrow(COMPANIES_COLUMN_ID)))
+            res.moveToNext()
+        }
+        res.close()
+        return arrayList
+    }
+
+    fun getByName(name : CharSequence): ArrayList<String> {
+        val arrayList = ArrayList<String>()
+
+        val db = this.readableDatabase
+        val res = db.rawQuery("select * from companies where name like '%$name%'", null)
+        res.moveToFirst()
+        while (!res.isAfterLast) {
+            arrayList.add(res.getString(res.getColumnIndexOrThrow(COMPANIES_COLUMN_NAME)))
+            res.moveToNext()
+        }
+        res.close()
+        return arrayList
+    }
+
+    fun getByNameIds(name : CharSequence): ArrayList<String> {
+        val arrayList = ArrayList<String>()
+
+        val db = this.readableDatabase
+        val res = db.rawQuery("select * from companies where name like '%$name%'", null)
+        res.moveToFirst()
+        while (!res.isAfterLast) {
+            arrayList.add(res.getString(res.getColumnIndexOrThrow(COMPANIES_COLUMN_ID)))
             res.moveToNext()
         }
         res.close()

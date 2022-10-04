@@ -7,9 +7,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.reto6.databinding.ActivityDisplayCompanyBinding
 
@@ -26,7 +24,7 @@ class DisplayCompany : AppCompatActivity() {
     private var phone: TextView? = null
     private var email: TextView? = null
     private var products: TextView? = null
-    private var classification: TextView? = null
+    private var classification: Spinner? = null
     private var idToUpdate = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +37,15 @@ class DisplayCompany : AppCompatActivity() {
         phone = binding.editTextPhone
         email = binding.editTextEmail
         products = binding.editTextProducts
-        classification = binding.editTextClassification
+        classification = binding.editSpinnerClassification
+
+        val dataAdapter = ArrayAdapter.createFromResource(this, R.array.classifications,
+                android.R.layout.simple_spinner_item)
+
+        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        classification!!.adapter = dataAdapter
+
         mydb = DBHelper(this)
         val extras = intent.extras
         if (extras != null) {
@@ -83,9 +89,10 @@ class DisplayCompany : AppCompatActivity() {
                 products!!.text = prod
                 products!!.isFocusable = false
                 products!!.isClickable = false
-                classification!!.text = clas
+                val spinnerPosition: Int = dataAdapter.getPosition(clas)
+                classification!!.setSelection(spinnerPosition)
                 classification!!.isFocusable = false
-                classification!!.isClickable = false
+                classification!!.isSelected = false
             }
         }
     }
@@ -109,7 +116,7 @@ class DisplayCompany : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         super.onOptionsItemSelected(item)
         return when (item.itemId) {
-            R.id.Edit_Contact -> {
+            R.id.Edit_Company -> {
                 val b = findViewById<View>(R.id.button1) as Button
                 b.visibility = View.VISIBLE
                 name!!.isEnabled = true
@@ -128,11 +135,10 @@ class DisplayCompany : AppCompatActivity() {
                 products!!.isFocusableInTouchMode = true
                 products!!.isClickable = true
                 classification!!.isEnabled = true
-                classification!!.isFocusableInTouchMode = true
-                classification!!.isClickable = true
+                classification!!.isSelected = true
                 true
             }
-            R.id.Delete_Contact -> {
+            R.id.Delete_Company -> {
                 val builder: AlertDialog.Builder = AlertDialog.Builder(this)
                 builder.setMessage(R.string.deleteContact)
                     .setPositiveButton(R.string.yes) { _, _ ->
@@ -164,7 +170,7 @@ class DisplayCompany : AppCompatActivity() {
                 if (mydb?.updateCompany(
                         idToUpdate, name!!.text.toString(), URL!!.text.toString(),
                         phone!!.text.toString(), email!!.text.toString(),
-                        products!!.text.toString(), classification!!.text.toString()
+                        products!!.text.toString(), classification!!.selectedItem.toString()
                     ) == true
                 ) {
                     Toast.makeText(applicationContext, "Updated", Toast.LENGTH_SHORT).show()
@@ -177,7 +183,7 @@ class DisplayCompany : AppCompatActivity() {
                 if (mydb?.insertCompany(
                         name!!.text.toString(), URL!!.text.toString(), phone!!.text.toString(),
                         email!!.text.toString(), products!!.text.toString(),
-                        classification!!.text.toString()
+                        classification!!.selectedItem.toString()
                     ) == true
                 ) {
                     Toast.makeText(

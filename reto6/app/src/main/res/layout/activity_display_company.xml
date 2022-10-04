@@ -112,27 +112,24 @@ tools:context=".DisplayCompany" >
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/textView1"
-        android:layout_alignBottom="@+id/editTextClassification"
-        android:layout_toStartOf="@+id/editTextClassification"
+        android:layout_alignBottom="@+id/editSpinnerClassification"
+        android:layout_toStartOf="@+id/editSpinnerClassification"
         android:text="@string/classification"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <EditText
-        android:id="@+id/editTextClassification"
+    <Spinner
+        android:id="@+id/editSpinnerClassification"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/editTextProducts"
         android:layout_alignEnd="@+id/editTextProducts"
-        android:layout_marginTop="30dp"
-        android:ems="10"
-        android:inputType="text" />
+        android:layout_marginTop="30dp" />
 
     <Button
         android:id="@+id/button1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/editTextClassification"
-        android:layout_below="@id/editTextClassification"
+        android:layout_below="@id/editSpinnerClassification"
         android:layout_alignParentBottom="true"
         android:layout_marginTop="28dp"
         android:onClick="run"
