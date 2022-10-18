@@ -52,74 +52,16 @@ fun CompanyItem(company: Company) {
                             .padding(4.dp)
                     )
                     Text(
+                        text = company.departamento_domicilio,
+                        style = MaterialTheme.typography.caption,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
                         text = company.ciiu,
                         style = MaterialTheme.typography.caption,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun DropDownDepartments(modifier: Modifier = Modifier) {
-
-    val listItems = Departments
-
-    var selectedItem by remember {
-        mutableStateOf("")
-    }
-
-    var expanded by remember {
-        mutableStateOf(false)
-    }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = {
-            expanded = !expanded
-        }
-    ) {
-
-        TextField(
-            value = selectedItem,
-            onValueChange = { selectedItem = it },
-            label = { Text(text = "Label") },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(
-                    expanded = expanded
-                )
-            },
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-            placeholder = {
-                Text("Busca un departamento")
-            },
-            modifier = modifier.fillMaxWidth().heightIn(min = 56.dp)
-        )
-
-        // filter options based on text field value
-        val filteringOptions =
-            listItems.filter { it.contains(selectedItem, ignoreCase = true) }
-
-        if (filteringOptions.isNotEmpty()) {
-
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = modifier.fillMaxWidth().heightIn(min = 56.dp)
-            ) {
-                filteringOptions.forEach { selectionOption ->
-                    DropdownMenuItem(
-                        onClick = {
-                            selectedItem = selectionOption
-                            expanded = false
-                        }
-                    ) {
-                        Text(text = selectionOption)
-                    }
                 }
             }
         }

@@ -25,4 +25,17 @@ class CompanyViewModel: ViewModel() {
             }
         }
     }
+
+    fun getCompanyListByDepartment(department: String){
+        viewModelScope.launch {
+            val apiService = APIService.getInstance()
+            try {
+                val companyList = apiService.getCompaniesByDepartment(department)
+                companyListResponse = companyList
+            }
+            catch (e:Exception){
+                errorMessage = e.message.toString()
+            }
+        }
+    }
 }
