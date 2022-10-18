@@ -48,13 +48,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Companylist(companyViewModel: CompanyViewModel, state: MutableState<TextFieldValue>) {
-    var companies = companyViewModel.companyListResponse
     var filteredCompanies: List<Company>
     LazyColumn {
         val searchedText = state.value.text
         filteredCompanies = if (searchedText.isEmpty()) {
             companyViewModel.getCompanyList()
-            companies = companyViewModel.companyListResponse
+            val companies = companyViewModel.companyListResponse
             companies
         } else {
             companyViewModel.getCompanyListByDepartment(searchedText.uppercase(Locale.getDefault()))
